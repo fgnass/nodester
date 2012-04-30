@@ -35,19 +35,24 @@ app.configure(function () {
 /*
  * status emitter
 */
+var dash;
 
-var bolt = require('bolt');
+function emit(hook, data) {
+  if (dash) dash.emit(hook, data);
+}
 
-var dash = new bolt.Node({
+if (config.opt.redis) {
+  var bolt = require('bolt');
+  dash = new bolt.Node({
     delimiter : '::',
     host      : config.opt.redis.host,
     port      : config.opt.redis.port,
     user      : config.opt.redis.user,
     auth      : config.opt.redis.auth,
     silent    : true
-});
-
-dash.start();
+  });
+  dash.start();
+}
 
 /*
  * Error handler
@@ -58,7 +63,7 @@ app.error(function (err, req, res, next) {
     res.sendfile(__dirname + '/public/404.html')
   } else {
     log.warn(err)
-    dash.emit('nodester::500',{msg:err.message,stack:err.stack.toString()})
+    emit('nodester::500',{msg:err.message,stack:err.stack.toString()})
     res.sendfile(__dirname + '/public/500.html')
   }
 });
@@ -75,7 +80,7 @@ app.all('*',function(req,res,next){
       ua     : req.headers['user-agent'] || 'nodester',
       host   : req.headers.host
     }
-    dash.emit('nodester::incomingRequest', toEmit)
+    emit('nodester::incomingRequest', toEmit)
   }
   next()
 })
@@ -95,7 +100,7 @@ function getStats(){
  * Ping every 3 seconds
 */
 setInterval(function(){
-  dash.emit('nodester::ping',{date:new Date})
+  emit('nodester::ping',{date:new Date})
 },3000)
 
 /*
@@ -103,12 +108,12 @@ setInterval(function(){
 */
 
 setInterval(function(){
-  dash.emit('nodester::stats',getStats())
+  emit('nodester::stats',getStats())
 }, 5000)
 
 
 process.on('uncaughtException', function (err) {
-  dash.emit('nodester::uE',{ msg:err.message,stack:err.stack.toString()})
+  emit('nodester::uE',{ msg:err.message,stack:err.stack.toString()})
   log.fatal(err.stack)
   // Kill it with fire dude
   var slog = fs.createWriteStream(path.join(config.opt.logs_dir + 'apperror.log'), {'flags': 'a'});
@@ -122,9 +127,9 @@ process.on('uncaughtException', function (err) {
 
 /* Routes  */
 
-/* 
+/*
  * Homepage Showcase
- * 
+ *
  */
 app.get('/', function (req, res, next) {
   res.sendfile(__dirname +'/public/index.html')
@@ -155,8 +160,8 @@ var auth       = middle.authenticate
   , deprecated = middle.deprecated
  ;
 
-/* 
- * Status endPoint 
+/*
+ * Status endPoint
  * @Public: true
  * @HTTP method: http://api.host.com/status
  * @raw:  curl http://api.host.com/status
@@ -205,7 +210,7 @@ app.post('/user', user.post);
  * Edit your user account
  * @Public: false, only with authentication
  * @raw: curl -X PUT -u "testuser:123" -d "password=test&rsakey=1234567" http://localhost:4001/user
- * @cli: nodester user 
+ * @cli: nodester user
  */
 
 app.put('/user', auth, user.put);
@@ -224,7 +229,7 @@ app.del('/user', auth, user.delete);
  */
 var apps = require('./lib/apps');
 
-/* 
+/*
  * All Applications info
  * @HTTP: http://chris:123@localhost:4001/apps
  * @raw: curl -u "testuser:123" http://localhost:4001/apps
@@ -239,12 +244,12 @@ app.get('/apps', auth, apps.get);
 var _app_ = require('./lib/app')
 
 
-/* 
+/*
  * Application info
  * @HTTP: http://chris:123@localhost:4001/apps/<appname>
  * @raw: curl -u "testuser:123" http://localhost:4001/apps/<appname>
  * @cli: nodester app info <appname>
- */ 
+ */
 app.get('/apps/:appname', auth, authApp, _app_.get);
 app.get('/app/:appname', deprecated, auth, authApp, _app_.get); // deprecated
 
@@ -274,7 +279,7 @@ app.get('/app_stop', _app_.app_stop);
  * @params  start=initfile.js
  * @params  running=true|false (stop,start)
  * Raw output:
- *    curl -X PUT -u "testuser:123" -d "start=hello.js" http://localhost:4001/apps/test  
+ *    curl -X PUT -u "testuser:123" -d "start=hello.js" http://localhost:4001/apps/test
  *    curl -X PUT -u "testuser:123" -d "running=true" http://localhost:4001/apps/test
  *    curl -X PUT -u "testuser:123" -d "running=false" http://localhost:4001/apps/test
  *    curl -X PUT -u "testuser:123" -d "running=restart" http://localhost:4001/apps/test
@@ -306,13 +311,13 @@ app.del('/gitreset/:appname', auth, authApp, _app_.gitreset);
  */
 app.get('/applogs/:appname', auth, authApp, _app_.logs);
 
-/* 
+/*
  * Retrieve information about or update a node app's ENV variables
  * This fulfills all four RESTful verbs.
  * @method: GET will retrieve the list of all keys.
  * @method: PUT will either create or update.
  * @method: DELETE will delete the key if it exists.
- * Raw output: 
+ * Raw output:
  *     curl -u GET -u "testuser:123" -d "appname=test" http://localhost:4001/env
  *     curl -u PUT -u "testuser:123" -d "appname=test&key=NODE_ENV&value=production" http://localhost:4001/env
  *     curl -u DELETE -u "testuser:123" -d "appname=test&key=NODE_ENV" http://localhost:4001/env
@@ -338,14 +343,14 @@ app.del('/env/:appname/:key', auth, authApp, _app_.env_delete);
  */
 var npm = require('./lib/npm');
 
-/* 
+/*
  * Install package
- * @raw: 
+ * @raw:
  *    curl -X POST -u "testuser:123" -d "appname=test&package=express" http://localhost:4001/appnpm
  *    curl -X POST -u "testuser:123" -d "appname=test&package=express" http://localhost:4001/npm
  *    curl -X POST -u "testuser:123" -d "appname=test&package=express,express-extras,foo" http://localhost:4001/npm
  */
- 
+
 app.post('/appnpm', auth, authApp, npm.post);
 app.post('/npm', auth, authApp, npm.post);
 
@@ -390,6 +395,6 @@ function NotFound(msg) {
 };
 
 // Globalization of log
-process.log = log 
+process.log = log
 
 /* End of file */

@@ -29,18 +29,25 @@ exports.opt = {
   ssl_key_file: '',
   node_base_folder: '/opt/node-v0.4.9_npm_v1.0.3',
 
+  // Uncomment this to emit status events via Redis pubsub
+  // see http://bolt.io
+  /*
   redis: {
     host: '127.0.0.1',
     port: 6379,
     user: 'nodester',
     auth: 'password'
+  },
+  */
 
-  },  
-
-  //Amazon SES mail info
-  SES: {
-    AWSAccessKeyID: 'ACCESSKEY',
-    AWSSecretKey: 'SECRETKEY',
-    ServiceUrl: 'https://email.us-east-1.amazonaws.com',
+  // Used by scripts/mailer.js to send password reset emails
+  mail: {
+    transport: 'SES', // see https://github.com/andris9/Nodemailer
+    config: {
+      AWSAccessKeyID: 'ACCESSKEY',
+      AWSSecretKey: 'SECRETKEY',
+      ServiceUrl: 'https://email.us-east-1.amazonaws.com',
+    }
   }
+
 };
