@@ -1,3 +1,5 @@
+var HOME = '/var/nodester';
+
 exports.opt = {
   couch_user: 'nodester',
   couch_pass: 'password',
@@ -5,12 +7,12 @@ exports.opt = {
   couch_port: 5984,
   couch_prefix: 'nodester',
   couch_tables: ['coupons', 'nodefu', 'nextport', 'apps', 'repos', 'aliasdomains', 'password_resets', 'admins'],
-  home_dir: '/var/nodester',
-  app_dir: '/var/nodester/nodester',
+  home_dir: HOME,
+  app_dir: HOME + '/nodester',
   git_home_dir: '/git',
   apps_home_dir: '/app',
-  public_html_dir: '/var/nodester/nodester/public',
-  proxy_table_file: '/var/nodester/var/proxy_table.json',
+  public_html_dir: HOME + '/nodester/public',
+  proxy_table_file: HOME + '/var/proxy_table.json',
   logs_dir: '/node/logs/',
   tl_dom: 'testnodester.com',
   api_dom: 'api.testnodester.com',
