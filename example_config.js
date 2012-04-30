@@ -18,7 +18,7 @@ exports.opt = {
   api_dom: 'api.testnodester.com',
   git_user: 'nodester',
   git_dom: 'testnodester.com',
-  coupon_code: 'CouponCode',
+  coupon_code: 'CouponCode', // Remove or set to a falsy value in order to disable coupon feature.
   blocked_apps: ['www', 'api', 'admin', 'support', 'blog', 'site'],
   restart_key: 'KeepThisSecret',
   userid: 'nodester',
