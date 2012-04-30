@@ -5,16 +5,22 @@ var mailer = require('nodemailer')
   , config = require('../config')
   ;
 
-var resets = lib.get_couchdb_database('password_resets');
+var resets = lib.get_couchdb_database('password_resets')
+  , mailerOpts = config.opt.mail
 
-mailer.SES = config.opt.SES;
+if (config.opt.SES) mailerOpts = {
+  transport: 'SES',
+  opts: config.opt.SES
+}
+
+var transport = mailer.createTransport(mailerOpts.transport, mailerOpts.config)
 
 function send_email(doc) {
-  mailer.send_mail({
+  transport.sendMail({
     sender  : 'support@nodester.com',
     to      : doc.id,
     subject : 'Password reset request',
-    body    : 'Here is your password request token: ' + doc.value.token + '\n\nYou can reset your password via Nodester API or CLI'
+    text    : 'Here is your password request token: ' + doc.value.token + '\n\nYou can reset your password via Nodester API or CLI'
   }, function (error, success) {
     console.log(new Date,'Reset password e-mail sent to: ' + doc.id)
     console.log(new Date, 'Message ' + success ? 'sent' : 'failed');
