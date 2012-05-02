@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 require.paths.unshift('/usr/lib/node_modules/');
+
 var http = require('http'),
   config = require("../config"),
   util = require('util'),
   exec = require('child_process').exec,
+  Logger = require('bunyan'),
+  log = process.log = new Logger({name: "nodester"}),
   app = require('../lib/app');
 
 require('colors');
