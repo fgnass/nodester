@@ -3,13 +3,13 @@
 
 echo ""
 echo ""
-echo -e "\033[33m\033[1m         
-                          _          _            
-          _ __   ___   __| | ___ ___| |_ ___ _ __ 
+echo -e "\033[33m\033[1m
+                          _          _
+          _ __   ___   __| | ___ ___| |_ ___ _ __
          | '_ \ / _ \ / _  |/ _ \ __| __/ _ \ '__|
-         | | | | (_) | (_| |  __\__ \ |_  __/ |   
+         | | | | (_) | (_| |  __\__ \ |_  __/ |
          |_| |_|\___/ \__,_|\___|___/\__\___|_|   \033[22m\033[39m
-                                                  
+
           \033[1mOpen Source Node.js Hosting Platform.\033[22m
               http://github.com/nodester"
 echo ""
@@ -48,6 +48,11 @@ if [ -f ./.gitmodules ]; then
     echo "Found git submodules, updating them now..."
     git submodule init;
     git submodule update;
+fi
+
+if [ -f ./package.json ]; then
+    echo "Updating npm modules..."
+    npm install
 fi
 
 cd $OLD_PWD
